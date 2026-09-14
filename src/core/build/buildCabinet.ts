@@ -180,6 +180,16 @@ export function buildCabinet(cab: Cabinet, mat: MaterialLookup): BuildResult {
   const t = carcassMat.thickness
   const { width: W, height: H, depth: D } = cab
 
+  // Each carcass face may override the cabinet material, and then carries its own
+  // thickness through every measurement that depends on it.
+  const faceMatId = (override?: string) => override ?? cab.materialId
+  const sideMatId = faceMatId(cab.panelMaterials?.sides)
+  const topMatId = faceMatId(cab.panelMaterials?.top)
+  const bottomMatId = faceMatId(cab.panelMaterials?.bottom)
+  const sideT = mat(sideMatId).thickness
+  const topMatT = mat(topMatId).thickness
+  const bottomMatT = mat(bottomMatId).thickness
+
   const band = cab.banding.enabled ? cab.banding.thickness : 0
   const c = new PartCollector(
     cab.id,
@@ -206,10 +216,10 @@ export function buildCabinet(cab: Cabinet, mat: MaterialLookup): BuildResult {
   // the panels that remain — and the interior — run out to the cabinet boundary
   // and meet the neighbouring module's panel there.
   const omit = cab.omit ?? NO_OMISSIONS
-  const leftT = omit.left ? 0 : t
-  const rightT = omit.right ? 0 : t
-  const topT = omit.top ? 0 : t
-  const botT = omit.bottom ? 0 : t
+  const leftT = omit.left ? 0 : sideT
+  const rightT = omit.right ? 0 : sideT
+  const topT = omit.top ? 0 : topMatT
+  const botT = omit.bottom ? 0 : bottomMatT
 
   if (
     W - leftT - rightT <= 0 ||
@@ -273,9 +283,9 @@ export function buildCabinet(cab: Cabinet, mat: MaterialLookup): BuildResult {
       c.add({
         role: 'side',
         label: 'Side (left)',
-        materialId: cab.materialId,
-        thickness: t,
-        box: box(0, t, carcassY0, carcassY1, carcassZ0, carcassZ1),
+        materialId: sideMatId,
+        thickness: sideT,
+        box: box(0, sideT, carcassY0, carcassY1, carcassZ0, carcassZ1),
         thicknessAxis: 'x',
         lengthAxis: 'y',
         banding: frontBand(),
@@ -285,9 +295,9 @@ export function buildCabinet(cab: Cabinet, mat: MaterialLookup): BuildResult {
       c.add({
         role: 'side',
         label: 'Side (right)',
-        materialId: cab.materialId,
-        thickness: t,
-        box: box(W - t, W, carcassY0, carcassY1, carcassZ0, carcassZ1),
+        materialId: sideMatId,
+        thickness: sideT,
+        box: box(W - sideT, W, carcassY0, carcassY1, carcassZ0, carcassZ1),
         thicknessAxis: 'x',
         lengthAxis: 'y',
         banding: frontBand(),
@@ -297,9 +307,9 @@ export function buildCabinet(cab: Cabinet, mat: MaterialLookup): BuildResult {
       c.add({
         role: 'top',
         label: 'Top',
-        materialId: cab.materialId,
-        thickness: t,
-        box: box(leftT, W - rightT, carcassY1 - t, carcassY1, carcassZ0, carcassZ1),
+        materialId: topMatId,
+        thickness: topMatT,
+        box: box(leftT, W - rightT, carcassY1 - topMatT, carcassY1, carcassZ0, carcassZ1),
         thicknessAxis: 'y',
         lengthAxis: 'x',
         banding: frontBand(),
@@ -309,9 +319,9 @@ export function buildCabinet(cab: Cabinet, mat: MaterialLookup): BuildResult {
       c.add({
         role: 'bottom',
         label: 'Bottom',
-        materialId: cab.materialId,
-        thickness: t,
-        box: box(leftT, W - rightT, carcassY0, carcassY0 + t, carcassZ0, carcassZ1),
+        materialId: bottomMatId,
+        thickness: bottomMatT,
+        box: box(leftT, W - rightT, carcassY0, carcassY0 + bottomMatT, carcassZ0, carcassZ1),
         thicknessAxis: 'y',
         lengthAxis: 'x',
         banding: frontBand(),
@@ -323,9 +333,9 @@ export function buildCabinet(cab: Cabinet, mat: MaterialLookup): BuildResult {
       c.add({
         role: 'top',
         label: 'Top',
-        materialId: cab.materialId,
-        thickness: t,
-        box: box(0, W, carcassY1 - t, carcassY1, carcassZ0, carcassZ1),
+        materialId: topMatId,
+        thickness: topMatT,
+        box: box(0, W, carcassY1 - topMatT, carcassY1, carcassZ0, carcassZ1),
         thicknessAxis: 'y',
         lengthAxis: 'x',
         banding: frontBand(),
@@ -335,9 +345,9 @@ export function buildCabinet(cab: Cabinet, mat: MaterialLookup): BuildResult {
       c.add({
         role: 'bottom',
         label: 'Bottom',
-        materialId: cab.materialId,
-        thickness: t,
-        box: box(0, W, carcassY0, carcassY0 + t, carcassZ0, carcassZ1),
+        materialId: bottomMatId,
+        thickness: bottomMatT,
+        box: box(0, W, carcassY0, carcassY0 + bottomMatT, carcassZ0, carcassZ1),
         thicknessAxis: 'y',
         lengthAxis: 'x',
         banding: frontBand(),
@@ -347,9 +357,9 @@ export function buildCabinet(cab: Cabinet, mat: MaterialLookup): BuildResult {
       c.add({
         role: 'side',
         label: 'Side (left)',
-        materialId: cab.materialId,
-        thickness: t,
-        box: box(0, t, carcassY0 + botT, carcassY1 - topT, carcassZ0, carcassZ1),
+        materialId: sideMatId,
+        thickness: sideT,
+        box: box(0, sideT, carcassY0 + botT, carcassY1 - topT, carcassZ0, carcassZ1),
         thicknessAxis: 'x',
         lengthAxis: 'y',
         banding: frontBand(),
@@ -359,9 +369,9 @@ export function buildCabinet(cab: Cabinet, mat: MaterialLookup): BuildResult {
       c.add({
         role: 'side',
         label: 'Side (right)',
-        materialId: cab.materialId,
-        thickness: t,
-        box: box(W - t, W, carcassY0 + botT, carcassY1 - topT, carcassZ0, carcassZ1),
+        materialId: sideMatId,
+        thickness: sideT,
+        box: box(W - sideT, W, carcassY0 + botT, carcassY1 - topT, carcassZ0, carcassZ1),
         thicknessAxis: 'x',
         lengthAxis: 'y',
         banding: frontBand(),

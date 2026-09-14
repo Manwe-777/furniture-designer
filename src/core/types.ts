@@ -284,6 +284,19 @@ export interface Cabinet {
   /** Faces left to a neighbouring module. Absent means a fully closed carcass. */
   omit?: OmitPanels
   /**
+   * Per-panel material overrides. Anything absent uses `materialId`.
+   *
+   * A carcass is not always one material: a cabinet in MDF can carry a solid timber
+   * top, or a thicker bottom. Each panel takes its own material's thickness, and the
+   * interior is measured from whatever each face actually contributes — so a 24mm top
+   * on an 18mm carcass shortens the sides by 24mm, not 18mm.
+   */
+  panelMaterials?: {
+    top?: string
+    bottom?: string
+    sides?: string
+  }
+  /**
    * Shelf-pin hole grid. Absent means no grid — shelves sit wherever the spacing
    * puts them, which is how designs made before this existed keep their positions.
    */

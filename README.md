@@ -30,7 +30,8 @@ npm run preview  # serve the build
 **Designer** — build the piece. Pick a cabinet, click a space in the 2D elevation, and
 either divide it (columns or rows) or fill it with shelves, drawers or a door. Sizes are
 exact millimetres in the inspector; the 3D view orbits, explodes, and selects any part
-you click.
+you click. Any face can take its own material — a solid timber top on an MDF carcass —
+and each panel's real thickness flows through every measurement that depends on it.
 
 **Cut plan** — the sheet layouts. Set your sheet size and saw kerf and it nests every
 part, tells you how many sheets to buy, and says whether that count could actually be

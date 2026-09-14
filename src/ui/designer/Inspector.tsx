@@ -391,6 +391,35 @@ function CabinetFields({ cabinet }: { cabinet: Cabinet }) {
         onChange={(v) => set({ carcass: v })}
       />
 
+      <h4>Panel materials</h4>
+      <p className="muted small">
+        Each face can override the cabinet material — a solid timber top on an MDF
+        carcass, say. Each takes its own thickness, so a 24mm top shortens the sides by
+        24mm.
+      </p>
+      {(
+        [
+          ['top', 'Top'],
+          ['bottom', 'Bottom'],
+          ['sides', 'Sides'],
+        ] as const
+      ).map(([face, label]) => (
+        <SelectField
+          key={face}
+          label={label}
+          value={cabinet.panelMaterials?.[face] ?? ''}
+          options={[
+            { value: '', label: 'Same as cabinet' },
+            ...materials.map((m) => ({ value: m.id, label: m.name })),
+          ]}
+          onChange={(v) =>
+            set({
+              panelMaterials: { ...cabinet.panelMaterials, [face]: v || undefined },
+            })
+          }
+        />
+      ))}
+
       <h4>Panels</h4>
       <p className="muted small">
         Untick a face this module shares with the one beside it. The panel is left out
