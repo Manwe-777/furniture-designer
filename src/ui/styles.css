@@ -1,0 +1,1289 @@
+:root {
+  --bg: #10151b;
+  --bg-panel: #171d25;
+  --bg-raised: #1e2630;
+  --bg-input: #121821;
+  --border: #2b3440;
+  --border-strong: #3c4857;
+  --text: #e6ecf3;
+  --text-muted: #8a99ab;
+  --accent: #ff8a3d;
+  --accent-dim: #3a2a1c;
+  --good: #4ec9a0;
+  --warn: #ffcc66;
+  --danger: #ff6b6b;
+  --radius: 6px;
+  --mono: 'JetBrains Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 13px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+.mono {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.strong {
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.small {
+  font-size: 11px;
+}
+
+.num {
+  text-align: right;
+}
+
+/* ---------- app shell ---------- */
+
+.app {
+  display: grid;
+  /*
+   * minmax(0, 1fr), not 1fr: a bare 1fr row takes its minimum from its content, so
+   * a child sized as a percentage of the row makes the row's height depend on the
+   * child and the child's height depend on the row. Pinning the minimum to 0 keeps
+   * the page a fixed-height scroll container instead.
+   */
+  grid-template-rows: auto auto minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.design-name {
+  flex: 0 1 260px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 5px 9px;
+  font-size: 13px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.header-actions .divider {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+}
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  padding: 0 14px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.tabs button {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.tabs button:hover {
+  color: var(--text);
+}
+
+.tabs button.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+.badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 9px;
+  background: var(--bg-raised);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-family: var(--mono);
+}
+
+/* ---------- buttons & inputs ---------- */
+
+button {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 5px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: #263040;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+button.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+button.danger:hover:not(:disabled) {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+button.link {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 2px 0;
+  text-align: left;
+}
+
+button.link:hover:not(:disabled) {
+  color: var(--accent);
+  background: none;
+}
+
+input,
+select {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 4px 7px;
+  font-family: inherit;
+  font-size: 12px;
+  width: 100%;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+input[type='checkbox'] {
+  width: auto;
+  accent-color: var(--accent);
+}
+
+input[type='range'] {
+  accent-color: var(--accent);
+}
+
+/* ---------- fields ---------- */
+
+.field {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3px;
+  margin-bottom: 8px;
+}
+
+.field-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.field-label em {
+  display: inline-grid;
+  place-items: center;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  font-size: 9px;
+  font-style: normal;
+  cursor: help;
+}
+
+.field-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.field-input .suffix {
+  position: absolute;
+  right: 8px;
+  color: var(--text-muted);
+  font-size: 10px;
+  pointer-events: none;
+}
+
+.field-input input {
+  padding-right: 30px;
+  font-family: var(--mono);
+}
+
+.size-row .field-input input {
+  padding-right: 22px;
+}
+
+.field.check {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 7px;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.field-row .field {
+  margin-bottom: 8px;
+}
+
+/* ---------- pages ---------- */
+
+.page {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.designer-page {
+  display: grid;
+  grid-template-columns: 240px minmax(320px, 1fr) minmax(360px, 1.15fr) 290px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 1px;
+  background: var(--border);
+}
+
+.designer-page > * {
+  background: var(--bg);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.panel-header h2 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.empty-state {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--text-muted);
+  padding: 24px;
+  text-align: center;
+}
+
+/* ---------- tree ---------- */
+
+.tree-panel {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background: var(--bg-panel);
+}
+
+.tree-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 6px;
+}
+
+.tree-unit {
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  margin-bottom: 4px;
+}
+
+.tree-unit.active {
+  border-color: var(--border);
+  background: var(--bg);
+}
+
+.tree-unit-header {
+  display: flex;
+  align-items: center;
+}
+
+.tree-unit-actions {
+  display: flex;
+  gap: 2px;
+  padding-right: 4px;
+  opacity: 0;
+}
+
+.tree-unit:hover .tree-unit-actions {
+  opacity: 1;
+}
+
+.tree-unit-actions button {
+  padding: 2px 6px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+}
+
+.tree-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 9px;
+  text-align: left;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.tree-row.unit {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.tree-row:hover {
+  background: var(--bg-raised);
+  color: var(--text);
+}
+
+.tree-row.selected {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.tree-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tree-meta {
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.tree-glyph {
+  opacity: 0.6;
+  width: 12px;
+}
+
+.tree-footer {
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.tree-footer button {
+  flex: 1;
+  justify-content: center;
+}
+
+/* ---------- elevation ---------- */
+
+.elevation {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.elevation-canvas {
+  overflow: hidden;
+  padding: 16px;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+}
+
+.elevation-canvas svg {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+}
+
+.elevation-bg {
+  fill: transparent;
+}
+
+.cell .cell-hit {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 2;
+  cursor: pointer;
+}
+
+.cell.hovered .cell-hit {
+  fill: rgba(255, 138, 61, 0.09);
+  stroke: rgba(255, 138, 61, 0.5);
+}
+
+.cell.selected .cell-hit {
+  fill: rgba(255, 138, 61, 0.14);
+  stroke: var(--accent);
+  stroke-dasharray: 10 6;
+}
+
+.cell-label {
+  fill: var(--accent);
+  pointer-events: none;
+  font-family: var(--mono);
+}
+
+.dimensions line {
+  stroke: var(--text-muted);
+  stroke-width: 1.5;
+}
+
+.dimensions text {
+  fill: var(--text-muted);
+  font-size: 22px;
+  font-family: var(--mono);
+}
+
+.cell-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.action-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.glyph {
+  opacity: 0.7;
+}
+
+/* ---------- 3D viewport ---------- */
+
+.right-column {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-height: 0;
+}
+
+.viewport {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.viewport-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.viewport-canvas canvas {
+  display: block;
+}
+
+.viewport-overlay {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 4px;
+  background: rgba(16, 21, 27, 0.82);
+  padding: 4px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.viewport-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.slider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 11px;
+  flex: 1;
+}
+
+.slider input {
+  flex: 1;
+}
+
+/* ---------- inspector ---------- */
+
+.page-side {
+  background: var(--bg-panel);
+  overflow-y: auto;
+  padding: 10px 12px;
+}
+
+.page-side.left {
+  border-right: 1px solid var(--border);
+}
+
+.inspector-section {
+  margin-bottom: 18px;
+}
+
+.inspector-section h3 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.inspector-section h4 {
+  margin: 14px 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.inspector-section.highlight {
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 10px;
+}
+
+.inspector-section.highlight h3 {
+  color: var(--accent);
+}
+
+.readout {
+  margin: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.readout > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.readout dt {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.readout dd {
+  margin: 0;
+}
+
+.size-list {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.size-row {
+  display: grid;
+  grid-template-columns: auto auto minmax(56px, 1fr);
+  align-items: center;
+  gap: 6px;
+  padding: 5px;
+  background: var(--bg);
+  border-radius: var(--radius);
+}
+
+.size-row > .link {
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.size-row .field {
+  margin: 0;
+}
+
+.segmented {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.segmented button {
+  border: none;
+  border-radius: 0;
+  padding: 3px 7px;
+  font-size: 11px;
+  background: none;
+  white-space: nowrap;
+}
+
+.slack {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.slack.error {
+  color: var(--danger);
+}
+
+/* ---------- warnings ---------- */
+
+.warnings {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #2a2113;
+  border-top: 1px solid #4a3a1c;
+}
+
+.warning {
+  background: none;
+  border: none;
+  color: var(--warn);
+  font-size: 11px;
+  padding: 2px 4px;
+}
+
+.warning-box {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 1px solid #4a3a1c;
+  background: #2a2113;
+  border-radius: var(--radius);
+  color: var(--warn);
+  font-size: 11px;
+}
+
+.warning-box ul {
+  margin: 5px 0;
+  padding-left: 16px;
+}
+
+/* ---------- tables ---------- */
+
+.bom-page,
+.cutplan-page {
+  display: grid;
+  min-height: 0;
+}
+
+.bom-page {
+  grid-template-columns: 1fr 320px;
+}
+
+.cutplan-page {
+  grid-template-columns: 290px 1fr;
+}
+
+.page-main {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.table-scroll {
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.data-table th {
+  position: sticky;
+  top: 0;
+  background: var(--bg-panel);
+  text-align: left;
+  padding: 7px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+  z-index: 1;
+}
+
+.data-table th.num {
+  text-align: right;
+}
+
+.data-table td {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table tbody tr {
+  cursor: pointer;
+}
+
+.data-table tbody tr:hover {
+  background: var(--bg-raised);
+}
+
+.data-table tr.selected {
+  background: var(--accent-dim);
+}
+
+.data-table.compact td {
+  padding: 4px 0;
+  border-bottom: none;
+}
+
+.data-table.compact tr:hover {
+  background: none;
+}
+
+.data-table tr.total td {
+  border-top: 1px solid var(--border);
+  padding-top: 7px;
+}
+
+.material-editor {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 7px 9px;
+  margin-bottom: 6px;
+  background: var(--bg);
+}
+
+.material-editor summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.material-editor[open] summary {
+  margin-bottom: 10px;
+}
+
+.material-editor summary .muted {
+  margin-left: auto;
+  font-size: 10px;
+}
+
+.swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  border: 1px solid var(--border-strong);
+}
+
+.material-result {
+  display: grid;
+  gap: 1px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+}
+
+.button-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.button-row button {
+  flex: 1;
+  justify-content: center;
+}
+
+/* ---------- cut plan sheets ---------- */
+
+.sheets {
+  display: block;
+  /*
+   * `scroll`, not `auto`: each sheet SVG derives its height from its width via the
+   * viewBox aspect ratio, so an `auto` scrollbar can appear, narrow the column,
+   * shorten the SVGs, remove the scrollbar, widen the column… and loop forever.
+   * Reserving the gutter breaks that feedback entirely.
+   */
+  overflow-y: scroll;
+  padding: 16px;
+  grid-template-rows: none;
+}
+
+.sheet-figure {
+  margin: 0 0 22px;
+}
+
+.sheet-figure figcaption {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+.sheet-svg {
+  display: block;
+  width: 100%;
+  /* Pin the box so layout never has to solve width from height. */
+  aspect-ratio: var(--sheet-aspect, 2 / 1);
+  height: auto;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.sheet-blank {
+  fill: #1a222c;
+  stroke: var(--border-strong);
+  stroke-width: 3;
+}
+
+.sheet-usable {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 2;
+  stroke-dasharray: 14 10;
+}
+
+.sheet-offcut {
+  fill: rgba(78, 201, 160, 0.07);
+  stroke: rgba(78, 201, 160, 0.3);
+  stroke-width: 2;
+  stroke-dasharray: 8 8;
+}
+
+.placement rect {
+  fill: #c9a87c;
+  stroke: #10151b;
+  stroke-width: 3;
+  cursor: pointer;
+}
+
+.placement:hover rect {
+  fill: #dcc099;
+}
+
+.placement.highlighted rect {
+  fill: var(--accent);
+}
+
+.placement text {
+  fill: #2b2114;
+  pointer-events: none;
+}
+
+/*
+ * Only the family — never a size. `.mono` sets font-size: 12px, and CSS beats an
+ * SVG presentation attribute, so using it here would silently throw away the
+ * fitted size and render every cut dimension at 12 user units (about 3px).
+ */
+.sheet-svg .dims {
+  font-family: var(--mono);
+}
+
+.rotated-note {
+  font-style: italic;
+  opacity: 0.7;
+}
+
+.cut-line {
+  stroke: #ff4d6d;
+  stroke-width: 3;
+  stroke-dasharray: 20 12;
+  opacity: 0.85;
+}
+
+.cut-line.depth-1 {
+  stroke-width: 2.5;
+  opacity: 0.6;
+}
+
+.cut-line.depth-2,
+.cut-line.depth-3 {
+  stroke-width: 2;
+  opacity: 0.45;
+}
+
+.sheet-dim {
+  fill: var(--text-muted);
+  font-size: 26px;
+  font-family: var(--mono);
+}
+
+/* ---------- print ---------- */
+
+@media print {
+  body {
+    background: #fff;
+    overflow: visible;
+  }
+
+  .app-header,
+  .tabs,
+  .page-side,
+  .viewport-controls {
+    display: none !important;
+  }
+
+  .cutplan-page {
+    display: block;
+    height: auto;
+  }
+
+  .sheets {
+    overflow: visible;
+    padding: 0;
+  }
+
+  .sheet-figure {
+    page-break-inside: avoid;
+    margin-bottom: 10mm;
+  }
+
+  .sheet-figure figcaption {
+    color: #000;
+  }
+
+  .sheet-svg {
+    background: #fff;
+    border-color: #999;
+  }
+
+  .sheet-blank {
+    fill: #fff;
+    stroke: #333;
+  }
+
+  .placement rect {
+    fill: #e8dcc8;
+    stroke: #333;
+  }
+
+  .placement text {
+    fill: #000;
+  }
+
+  .sheet-dim,
+  .muted {
+    fill: #444;
+    color: #444;
+  }
+}
+
+/* ---------- narrower windows ---------- */
+
+/*
+ * Below ~1400px four side-by-side columns stop fitting, so the 3D view moves
+ * underneath the elevation rather than squeezing the inspector off the screen.
+ * Both editing surfaces stay visible, which is the point of the layout.
+ */
+@media (max-width: 1400px) {
+  .designer-page {
+    grid-template-columns: 200px minmax(0, 1fr) 250px;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) auto;
+  }
+
+  .tree-panel {
+    grid-column: 1;
+    grid-row: 1 / 3;
+  }
+
+  .elevation {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .right-column {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .designer-page > .page-side {
+    grid-column: 3;
+    grid-row: 1 / 3;
+  }
+
+  .warnings {
+    grid-row: 3;
+  }
+}
+
+@media (max-width: 1100px) {
+  .bom-page {
+    grid-template-columns: 1fr 270px;
+  }
+
+  .cutplan-page {
+    grid-template-columns: 250px 1fr;
+  }
+
+  .field-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.error-panel {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  max-width: 560px;
+  margin: 40px auto;
+  padding: 20px;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+  background: #2a1618;
+}
+
+.error-panel h2 {
+  margin: 0;
+  font-size: 14px;
+  color: var(--danger);
+}
+
+.error-panel pre {
+  margin: 0;
+  padding: 10px;
+  background: var(--bg);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  font-size: 11px;
+}
+
+.panel-toggles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 10px;
+  margin-bottom: 8px;
+}
+
+.panel-toggles .field {
+  margin-bottom: 2px;
+}
+
+.viewport-overlay .segmented {
+  border-color: var(--border-strong);
+}
+
+.viewport-overlay .segmented button {
+  padding: 5px 9px;
+}
+
+.add-material {
+  width: 100%;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.material-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.verdict {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.verdict.good {
+  color: var(--good);
+}
+
+.verdict.warn {
+  color: var(--warn);
+}
+
+/* ---------- drilling ---------- */
+
+.drilling-page {
+  display: grid;
+  grid-template-columns: 290px 1fr;
+  min-height: 0;
+}
+
+.drilling-list {
+  display: block;
+  overflow-y: scroll;
+  padding: 16px;
+  grid-template-rows: none;
+}
+
+.panel-card {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+}
+
+.panel-card figcaption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.panel-card p {
+  margin: 4px 0 10px;
+}
+
+.panel-diagram {
+  display: block;
+  /* Fixed height with an automatic width: every panel is drawn at the same scale,
+     so a 2m side really looks longer than a 650mm divider instead of both being
+     stretched to the same box. */
+  height: 150px;
+  width: auto;
+  max-width: 100%;
+  background: var(--bg);
+  border-radius: 4px;
+}
+
+.panel-body {
+  fill: #c9a87c;
+  stroke: #2b3138;
+  stroke-width: 2;
+}
+
+.panel-front-edge {
+  stroke: var(--accent);
+  stroke-width: 6;
+}
+
+.panel-note {
+  fill: var(--text-muted);
+  font-family: var(--mono);
+}
+
+.hole {
+  fill: #10151b;
+  opacity: 0.45;
+}
+
+.hole.used {
+  fill: var(--accent);
+  opacity: 1;
+}
+
+.hole-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 7px;
+  margin: 6px 0;
+}
+
+.hole-list span {
+  color: var(--text-muted);
+}
+
+.hole-list span.used {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.jig-variant {
+  display: grid;
+  gap: 2px;
+  padding: 7px 0;
+  border-top: 1px solid var(--border);
+}
+
+.jig-variant .button-row {
+  margin-top: 4px;
+}
