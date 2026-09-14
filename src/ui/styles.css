@@ -1287,3 +1287,29 @@ input[type='range'] {
 .jig-variant .button-row {
   margin-top: 4px;
 }
+
+.tag {
+  display: inline-block;
+  margin-left: 7px;
+  padding: 1px 6px;
+  border-radius: 9px;
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.supplied-note {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--bg);
+  font-size: 11px;
+}
+
+.supplied-note ul {
+  margin: 5px 0;
+  padding-left: 16px;
+}

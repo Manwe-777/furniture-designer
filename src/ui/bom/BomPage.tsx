@@ -65,7 +65,10 @@ export function BomPage() {
                   }}
                   title="Show this part in the designer"
                 >
-                  <td>{row.label}</td>
+                  <td>
+                    {row.label}
+                    {row.supplied && <span className="tag">supplied</span>}
+                  </td>
                   <td className="muted">{row.materialName}</td>
                   <td className="num mono">{row.thickness}</td>
                   <td className="num mono strong">{row.length}</td>
@@ -144,6 +147,17 @@ export function BomPage() {
                 <td>Hardware</td>
                 <td className="num mono">{money(cost.hardwareTotal)}</td>
               </tr>
+              {bom.byMaterial
+                .filter((m) => m.supplied)
+                .map((m) => (
+                  <tr key={m.materialId}>
+                    <td>
+                      {m.materialName}
+                      <span className="muted"> · {m.areaM2.toFixed(2)} m²</span>
+                    </td>
+                    <td className="num muted">supplied</td>
+                  </tr>
+                ))}
               <tr className="total">
                 <td>Total</td>
                 <td className="num mono strong">{money(cost.grandTotal)}</td>
@@ -217,6 +231,19 @@ function MaterialEditor({ material }: { material: Material }) {
         <span className="field-label">
           Has grain
           <em title="Grained parts keep their orientation when nesting, which usually costs a little more material">
+            ?
+          </em>
+        </span>
+      </label>
+      <label className="field check">
+        <input
+          type="checkbox"
+          checked={!!material.supplied}
+          onChange={(e) => update({ supplied: e.target.checked })}
+        />
+        <span className="field-label">
+          Supplied to size
+          <em title="Not cut from sheets — a solid timber plank, glass, a bought worktop. Left out of the cut plan and the sheet count, but still listed here with its dimensions so you know what to order.">
             ?
           </em>
         </span>

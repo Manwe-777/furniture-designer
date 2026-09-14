@@ -107,18 +107,20 @@ export function buildCost(
   hardware: HardwareItem[],
   sheetCounts?: Map<string, number>,
 ): CostSummary {
-  const sheets = bom.byMaterial.map((m) => {
-    const material = design.materials.find((x) => x.id === m.materialId)
-    const count = sheetCounts?.get(m.materialId) ?? m.minSheets
-    const pricePerSheet = material?.pricePerSheet ?? 0
-    return {
-      materialId: m.materialId,
-      materialName: m.materialName,
-      sheets: count,
-      pricePerSheet,
-      total: count * pricePerSheet,
-    }
-  })
+  const sheets = bom.byMaterial
+    .filter((m) => !m.supplied)
+    .map((m) => {
+      const material = design.materials.find((x) => x.id === m.materialId)
+      const count = sheetCounts?.get(m.materialId) ?? m.minSheets
+      const pricePerSheet = material?.pricePerSheet ?? 0
+      return {
+        materialId: m.materialId,
+        materialName: m.materialName,
+        sheets: count,
+        pricePerSheet,
+        total: count * pricePerSheet,
+      }
+    })
 
   const hardwareTotal = hardware.reduce((sum, h) => sum + h.total, 0)
   const sheetsTotal = sheets.reduce((sum, s) => sum + s.total, 0)

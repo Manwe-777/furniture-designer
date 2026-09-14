@@ -352,7 +352,8 @@ export function nest(
 
   for (const [materialId, group] of groups) {
     const material = materials.get(materialId)
-    if (!material) continue
+    // Supplied materials are bought to size, so there is nothing to nest.
+    if (!material || material.supplied) continue
     const result = nestMaterial(group, material, options)
     byMaterial.push(result)
     strategies.push(`${material.name}: ${result.sheets.length} sheet(s)`)

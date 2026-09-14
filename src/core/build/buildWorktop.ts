@@ -19,7 +19,12 @@ export function buildWorktop(wt: Worktop, mat: MaterialLookup): BuildResult {
   const material = mat(wt.materialId)
   const t = material.thickness
   const band = wt.banding.enabled ? wt.banding.thickness : 0
-  const c = new PartCollector(wt.id, band, wt.banding.enabled && wt.banding.compensate)
+  const c = new PartCollector(
+    wt.id,
+    band,
+    wt.banding.enabled && wt.banding.compensate,
+    mat,
+  )
 
   if (wt.shape === 'rect') {
     c.add({

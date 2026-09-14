@@ -37,7 +37,10 @@ part, tells you how many sheets to buy, and says whether that count could actual
 lower. Prints, or exports CSV.
 
 **Bill of materials** — every part with its cut size and quantity, plus hardware counts
-and a cost estimate. Edit your materials and sheet prices here.
+and a cost estimate. Edit your materials and sheet prices here. Mark a material
+**supplied to size** — a solid timber top, glass, anything bought rather than cut — and
+its parts drop out of the cut plan and the sheet count but stay listed with their
+dimensions, so you still know what to order.
 
 **Drilling** — where to put every shelf-pin hole, in each panel's own coordinates, plus
 parametric jigs to drill them accurately (OpenSCAD or FreeCAD macro).

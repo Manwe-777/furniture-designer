@@ -18,6 +18,8 @@ export interface BomRow {
   bandedEdges: number
   /** Square metres for all parts in this row. */
   areaM2: number
+  /** Bought to size rather than cut from a sheet. */
+  supplied: boolean
 }
 
 export interface BomSummary {
@@ -33,6 +35,7 @@ export interface BomSummary {
     parts: number
     areaM2: number
     minSheets: number
+    supplied: boolean
   }[]
 }
 
@@ -118,6 +121,7 @@ export function buildBom(parts: Part[], materials: Map<string, Material>): BomSu
         Number(p.edgeBanding.alongWidth[0]) +
         Number(p.edgeBanding.alongWidth[1]),
       areaM2: (length * width) / 1_000_000,
+      supplied: material?.supplied ?? false,
     })
   }
 
@@ -141,10 +145,13 @@ export function buildBom(parts: Part[], materials: Map<string, Material>): BomSu
       parts: 0,
       areaM2: 0,
       minSheets: 0,
+      supplied: row.supplied,
     }
     entry.parts += row.quantity
     entry.areaM2 += row.areaM2
-    entry.minSheets = sheetArea > 0 ? Math.ceil(entry.areaM2 / sheetArea) : 0
+    // A supplied material has no sheet count — you buy the piece, not a sheet.
+    entry.minSheets =
+      !row.supplied && sheetArea > 0 ? Math.ceil(entry.areaM2 / sheetArea) : 0
     byMaterialMap.set(row.materialId, entry)
   }
 

@@ -28,6 +28,18 @@ export interface Material {
   pricePerSheet: number
   /** MDF has no grain, so parts may be rotated freely when nesting. Veneer/ply does. */
   hasGrain: boolean
+  /**
+   * Not cut from sheets — a solid timber plank, a glass shelf, a stone top,
+   * something bought to size.
+   *
+   * Parts in this material are left out of the nesting entirely and never counted
+   * towards sheets, but they stay in the bill of materials with their dimensions,
+   * because you still have to order the thing. This lives on the material rather
+   * than on individual parts on purpose: "does not come off a sheet" is a fact
+   * about the stuff, and a per-part flag could disagree with the material it
+   * claimed to be.
+   */
+  supplied?: boolean
   /** Display colour in the 3D and 2D views. */
   color: string
 }

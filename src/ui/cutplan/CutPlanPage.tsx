@@ -51,6 +51,7 @@ function Verdict({ result }: { result: MaterialNestResult }) {
 export function CutPlanPage() {
   const design = useStore((s) => s.design)
   const parts = useStore((s) => s.build.parts)
+  const bom = useStore((s) => s.bom)
   const updateSettings = useStore((s) => s.updateSettings)
   const selectPart = useStore((s) => s.selectPart)
   const selectedPartId = useStore((s) => s.selection.partId)
@@ -71,6 +72,9 @@ export function CutPlanPage() {
   )
 
   const allSheets = result.byMaterial.flatMap((m) => m.sheets)
+  // Called out explicitly: a material silently missing from the cut plan is exactly
+  // the kind of thing you only notice at the timber yard.
+  const supplied = bom.byMaterial.filter((m) => m.supplied)
 
   return (
     <div className="page cutplan-page">
@@ -134,6 +138,22 @@ export function CutPlanPage() {
               <Verdict result={m} />
             </div>
           ))}
+
+          {supplied.length > 0 && (
+            <div className="supplied-note">
+              <strong>Not nested — supplied to size:</strong>
+              <ul>
+                {supplied.map((m) => (
+                  <li key={m.materialId}>
+                    {m.materialName} · {m.parts} part(s) · {m.areaM2.toFixed(2)} m²
+                  </li>
+                ))}
+              </ul>
+              <span className="small">
+                Buy these to size; their cut dimensions are on the Bill of materials tab.
+              </span>
+            </div>
+          )}
 
           {result.unplaced.length > 0 && (
             <div className="warning-box">

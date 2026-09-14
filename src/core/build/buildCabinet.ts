@@ -97,6 +97,8 @@ export class PartCollector {
     private readonly ownerId: string,
     private readonly bandThickness: number,
     private readonly compensate: boolean,
+    /** Used to skip banding compensation on materials bought to size. */
+    private readonly mat?: MaterialLookup,
   ) {}
 
   warn(message: string, nodeId?: string): void {
@@ -128,7 +130,12 @@ export class PartCollector {
     let length = size[AXIS_INDEX[spec.lengthAxis]]
     let width = size[AXIS_INDEX[otherAxis]]
 
-    if (this.compensate && this.bandThickness > 0) {
+    // Never shrink a part in a material bought to size. Compensation assumes the
+    // panel will be banded afterwards and grow back — you do not band a solid
+    // timber plank, and an order placed 2mm short is an expensive mistake.
+    const supplied = this.mat?.(spec.materialId).supplied ?? false
+
+    if (this.compensate && this.bandThickness > 0 && !supplied) {
       // An edge running along the length sits at an end of the WIDTH axis, so
       // banding it grows the width — cut it undersize by that much.
       width -= this.bandThickness * (Number(banding.alongLength[0]) + Number(banding.alongLength[1]))
@@ -174,7 +181,12 @@ export function buildCabinet(cab: Cabinet, mat: MaterialLookup): BuildResult {
   const { width: W, height: H, depth: D } = cab
 
   const band = cab.banding.enabled ? cab.banding.thickness : 0
-  const c = new PartCollector(cab.id, band, cab.banding.enabled && cab.banding.compensate)
+  const c = new PartCollector(
+    cab.id,
+    band,
+    cab.banding.enabled && cab.banding.compensate,
+    mat,
+  )
 
   const backMatId = cab.back.materialId ?? cab.materialId
   const tb = cab.back.style === 'none' ? 0 : mat(backMatId).thickness
