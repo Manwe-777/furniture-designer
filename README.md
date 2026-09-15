@@ -38,7 +38,11 @@ part, tells you how many sheets to buy, and says whether that count could actual
 lower. Prints, or exports CSV.
 
 **Bill of materials** — every part with its cut size and quantity, plus hardware counts
-and a cost estimate. Edit your materials and sheet prices here. Mark a material
+and a cost estimate. Exports a **cutting order as .xlsx** in the column layout board
+shops ask for, one worksheet per material, with the shop's own rules checked first:
+minimum cuttable piece, minimum bandable piece, one banding format per piece, and
+whether cut-size compensation should be off because the shop applies banding to the size
+you give. Edit your materials and sheet prices here. Mark a material
 **supplied to size** — a solid timber top, glass, anything bought rather than cut — and
 its parts drop out of the cut plan and the sheet count but stay listed with their
 dimensions, so you still know what to order.

@@ -16,6 +16,8 @@ export interface BomRow {
   /** Metres of edge banding for ALL parts in this row. */
   bandingMetres: number
   bandedEdges: number
+  /** Which edges carry banding, in the row's own (possibly rotated) orientation. */
+  edgeBanding: EdgeBanding
   /** Square metres for all parts in this row. */
   areaM2: number
   /** Bought to size rather than cut from a sheet. */
@@ -80,8 +82,15 @@ export function buildBom(parts: Part[], materials: Map<string, Material>): BomSu
     // together — unless the material has grain, where orientation is meaningful.
     const material = materials.get(p.materialId)
     const hasGrain = material?.hasGrain ?? false
-    const [rawLength, rawWidth] =
-      hasGrain || p.length >= p.width ? [p.length, p.width] : [p.width, p.length]
+    // When a part is presented rotated, its EDGES rotate with it. Swapping the
+    // dimensions without swapping the banding would put the banded edge on the
+    // wrong side of the part — invisible in a metre total, wrong the moment
+    // anything reads the per-edge flags.
+    const swap = !hasGrain && p.length < p.width
+    const [rawLength, rawWidth] = swap ? [p.width, p.length] : [p.length, p.width]
+    const edgeBanding: EdgeBanding = swap
+      ? { alongLength: p.edgeBanding.alongWidth, alongWidth: p.edgeBanding.alongLength }
+      : p.edgeBanding
     const length = cutMm(rawLength)
     const width = cutMm(rawWidth)
 
@@ -90,7 +99,7 @@ export function buildBom(parts: Part[], materials: Map<string, Material>): BomSu
       p.thickness,
       length,
       width,
-      bandingKey(p.edgeBanding),
+      bandingKey(edgeBanding),
       genericLabel(p.label),
     ].join('|')
 
@@ -115,11 +124,12 @@ export function buildBom(parts: Part[], materials: Map<string, Material>): BomSu
       quantity: 1,
       partIds: [p.id],
       bandingMetres: mm(bandingMetres(p)),
+      edgeBanding,
       bandedEdges:
-        Number(p.edgeBanding.alongLength[0]) +
-        Number(p.edgeBanding.alongLength[1]) +
-        Number(p.edgeBanding.alongWidth[0]) +
-        Number(p.edgeBanding.alongWidth[1]),
+        Number(edgeBanding.alongLength[0]) +
+        Number(edgeBanding.alongLength[1]) +
+        Number(edgeBanding.alongWidth[0]) +
+        Number(edgeBanding.alongWidth[1]),
       areaM2: (length * width) / 1_000_000,
       supplied: material?.supplied ?? false,
     })

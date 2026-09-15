@@ -1,11 +1,12 @@
 import { useMemo } from 'react'
 import { buildCost, buildHardware } from '../../core/hardware'
 import { bomToCsv } from '../../core/io/csv'
+import { buildCutOrder, cutOrderWarnings } from '../../core/io/cutOrder'
 import { countMaterialUsage } from '../../core/materials'
 import type { Material } from '../../core/types'
 import { useStore } from '../../state/store'
 import { NumberField, TextField } from '../components/Field'
-import { download } from '../download'
+import { download, downloadBlob } from '../download'
 
 export function BomPage() {
   const bom = useStore((s) => s.bom)
@@ -22,6 +23,7 @@ export function BomPage() {
   }, [design, parts, bom])
 
   const selectedRowKey = bom.rows.find((r) => r.partIds.includes(selection.partId ?? ''))?.key
+  const orderWarnings = useMemo(() => cutOrderWarnings(design, bom), [design, bom])
 
   return (
     <div className="page bom-page">
@@ -38,8 +40,29 @@ export function BomPage() {
             >
               Export CSV
             </button>
+            <button
+              type="button"
+              title="Cutting order in the board shop's column layout, one sheet per material"
+              onClick={() => downloadBlob('listado-de-corte.xlsx', buildCutOrder(design, bom))}
+            >
+              Cutting order (.xlsx)
+            </button>
           </div>
         </div>
+
+        {orderWarnings.length > 0 && (
+          <div className="warning-box order-warnings">
+            <strong>Before sending the cutting order:</strong>
+            <ul>
+              {orderWarnings.map((w, i) => (
+                <li key={i}>
+                  {w.severity === 'error' ? '⛔ ' : '⚠ '}
+                  {w.message}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="table-scroll">
           <table className="data-table">

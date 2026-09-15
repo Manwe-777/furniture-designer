@@ -10,6 +10,16 @@ export function download(filename: string, contents: string, type = 'application
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
+/** Hand the browser a binary file to save. */
+export function downloadBlob(filename: string, blob: Blob): void {
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = filename
+  anchor.click()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
 /** Ask the user for a file and return its text. */
 export function pickTextFile(accept: string): Promise<string | null> {
   return new Promise((resolve) => {

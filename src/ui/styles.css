@@ -1313,3 +1313,7 @@ input[type='range'] {
   margin: 5px 0;
   padding-left: 16px;
 }
+
+.order-warnings {
+  margin: 10px 12px 0;
+}
