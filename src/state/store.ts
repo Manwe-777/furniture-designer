@@ -46,6 +46,7 @@ interface AppState {
   tab: Tab
   exploded: number
   showDimensions: boolean
+  showBanding: boolean
   projection: Projection
   past: Design[]
   future: Design[]
@@ -57,6 +58,7 @@ interface AppState {
   setTab: (tab: Tab) => void
   setExploded: (value: number) => void
   toggleDimensions: () => void
+  toggleBanding: () => void
   setProjection: (projection: Projection) => void
   select: (selection: Selection) => void
   selectPart: (partId: string) => void
@@ -170,6 +172,7 @@ export const useStore = create<AppState>((set, get) => {
     tab: initialTab(),
     exploded: 0,
     showDimensions: true,
+    showBanding: true,
     projection: 'perspective',
     past: [],
     future: [],
@@ -178,6 +181,7 @@ export const useStore = create<AppState>((set, get) => {
     setTab: (tab) => set({ tab }),
     setExploded: (exploded) => set({ exploded }),
     toggleDimensions: () => set({ showDimensions: !get().showDimensions }),
+    toggleBanding: () => set({ showBanding: !get().showBanding }),
     setProjection: (projection) => set({ projection }),
     select: (selection) => set({ selection }),
 

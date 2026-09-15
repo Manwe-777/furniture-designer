@@ -158,6 +158,7 @@ export class PartCollector {
       grain: 'length',
       edgeBanding: banding,
       thicknessAxis: spec.thicknessAxis,
+      lengthAxis: spec.lengthAxis,
       box: spec.box,
     }
     this.parts.push(part)

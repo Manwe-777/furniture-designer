@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { designBounds } from '../../core/build/buildDesign'
+import { bandingBox } from '../../core/geom'
 import type { Part } from '../../core/types'
 import { useStore, type Projection } from '../../state/store'
 
@@ -34,6 +35,14 @@ const UNIT_BOX = new THREE.BoxGeometry(1, 1, 1)
 const UNIT_EDGES = new THREE.EdgesGeometry(UNIT_BOX)
 
 const SELECTED_COLOR = '#ff8a3d'
+// A saturated teal: the board palette and the auto-assigned material colours are all
+// muted wood tones, so banding has to sit outside that range to read as a coating
+// rather than as another kind of board.
+const BANDING_COLOR = '#1fa8b8'
+// Real banding is about a millimetre. Drawn at its true thickness it would vanish
+// against a 2m panel, so it is shown thicker — the edge it sits on is the
+// information, not how far it stands proud.
+const BANDING_DRAW_THICKNESS = 3
 
 const VIEW_DIRECTIONS: Record<ViewName, [number, number, number]> = {
   front: [0, 0.15, 1],
@@ -67,6 +76,7 @@ export function Viewport3D() {
   const selectedNodeId = useStore((s) => s.selection.nodeId)
   const selectedCabinetId = useStore((s) => s.selection.cabinetId)
   const exploded = useStore((s) => s.exploded)
+  const showBanding = useStore((s) => s.showBanding)
   const projection = useStore((s) => s.projection)
   const selectPart = useStore((s) => s.selectPart)
 
@@ -273,6 +283,39 @@ export function Viewport3D() {
       edges.scale.copy(mesh.scale)
       edges.position.copy(mesh.position)
       partGroup.add(edges)
+
+      if (showBanding) {
+        const offset = [
+          mesh.position.x - (px + sx / 2),
+          mesh.position.y - (py + sy / 2),
+          mesh.position.z - (pz + sz / 2),
+        ] as const
+
+        for (const [along, sides] of [
+          ['length', part.edgeBanding.alongLength],
+          ['width', part.edgeBanding.alongWidth],
+        ] as const) {
+          sides.forEach((banded, side) => {
+            if (!banded) return
+            const b = bandingBox(
+              part.box,
+              part.thicknessAxis,
+              part.lengthAxis,
+              along,
+              side as 0 | 1,
+              BANDING_DRAW_THICKNESS,
+            )
+            const strip = new THREE.Mesh(UNIT_BOX, surface(BANDING_COLOR, false))
+            strip.scale.set(b.size[0], b.size[1], b.size[2])
+            strip.position.set(
+              b.pos[0] + b.size[0] / 2 + offset[0],
+              b.pos[1] + b.size[1] / 2 + offset[1],
+              b.pos[2] + b.size[2] / 2 + offset[2],
+            )
+            partGroup.add(strip)
+          })
+        }
+      }
     }
 
     // Frame the design the first time there is something to look at.
@@ -280,7 +323,7 @@ export function Viewport3D() {
       framedRef.current = true
       frameBounds(handle, bounds)
     }
-  }, [parts, materials, exploded, selectedPartId, selectedNodeId, selectedCabinetId])
+  }, [parts, materials, exploded, showBanding, selectedPartId, selectedNodeId, selectedCabinetId])
 
   // ---- click to select ----------------------------------------------------
   useEffect(() => {

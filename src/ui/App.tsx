@@ -104,6 +104,8 @@ function ViewportControls() {
   const setExploded = useStore((s) => s.setExploded)
   const showDimensions = useStore((s) => s.showDimensions)
   const toggleDimensions = useStore((s) => s.toggleDimensions)
+  const showBanding = useStore((s) => s.showBanding)
+  const toggleBanding = useStore((s) => s.toggleBanding)
 
   return (
     <div className="viewport-controls">
@@ -123,6 +125,14 @@ function ViewportControls() {
       </button>
       <button type="button" onClick={toggleDimensions}>
         {showDimensions ? 'Hide' : 'Show'} dimensions
+      </button>
+      <button
+        type="button"
+        className={showBanding ? 'active' : ''}
+        onClick={toggleBanding}
+        title="Show which edges carry edge banding"
+      >
+        Banding
       </button>
     </div>
   )

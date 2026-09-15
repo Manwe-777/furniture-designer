@@ -1,5 +1,5 @@
-import { applyTransform } from '../geom'
-import type { Design, Material, Part } from '../types'
+import { applyTransform, rotateAxis } from '../geom'
+import type { Design, Material, Part, Transform } from '../types'
 import { buildCabinet, type BuildResult, type MaterialLookup } from './buildCabinet'
 import { buildWorktop } from './buildWorktop'
 
@@ -40,7 +40,7 @@ export function buildDesign(design: Design): BuildResult {
     warnings.push(...result.warnings)
     regions.push(...result.regions)
     for (const part of result.parts) {
-      parts.push({ ...part, box: applyTransform(part.box, cab.transform) })
+      parts.push(placed(part, cab.transform))
     }
   }
 
@@ -48,11 +48,21 @@ export function buildDesign(design: Design): BuildResult {
     const result = buildWorktop(wt, mat)
     warnings.push(...result.warnings)
     for (const part of result.parts) {
-      parts.push({ ...part, box: applyTransform(part.box, wt.transform) })
+      parts.push(placed(part, wt.transform))
     }
   }
 
   return { parts, warnings, regions }
+}
+
+/** Move a part into world space — box and axes together. */
+function placed(part: Part, transform: Transform): Part {
+  return {
+    ...part,
+    box: applyTransform(part.box, transform),
+    thicknessAxis: rotateAxis(part.thicknessAxis, transform.rotY),
+    lengthAxis: rotateAxis(part.lengthAxis, transform.rotY),
+  }
 }
 
 /** World-space bounds of every part, for framing the camera. */

@@ -102,6 +102,13 @@ export interface Part {
   edgeBanding: EdgeBanding
   /** Which local axis the thickness runs along — tells you how the panel lies. */
   thicknessAxis: Axis
+  /**
+   * Which axis the `length` runs along. Needed to locate the banded edges in space:
+   * `alongLength` edges sit at the two ends of the remaining axis, and without this
+   * you would have to guess from the measurements, which is ambiguous on a panel
+   * that happens to be square.
+   */
+  lengthAxis: Axis
   /** World-placed bounding box, after the owner's transform is applied. */
   box: Box
 }

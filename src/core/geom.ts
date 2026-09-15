@@ -1,4 +1,4 @@
-import type { Box, Transform } from './types'
+import type { Axis, Box, Transform } from './types'
 
 /**
  * Round to 0.01mm. Panel maths chains a lot of subtractions and we do not want
@@ -84,4 +84,64 @@ export function applyTransform(b: Box, t: Transform): Box {
     pos: [mm(nx + t.x), mm(y + t.y), mm(nz + t.z)],
     size: [mm(ndx), mm(dy), mm(ndz)],
   }
+}
+
+/**
+ * Where a local axis points after a rotation about Y.
+ *
+ * A part's thickness and length axes are recorded in its cabinet's own frame, but
+ * its box is world-placed. Quarter turns swap X and Z, so the axes have to travel
+ * with the box or a rotated cabinet ends up with its banding drawn on the wrong
+ * edge — the kind of error that looks fine until you compare it with the cut list.
+ */
+export function rotateAxis(axis: Axis, rotY: Transform['rotY']): Axis {
+  if (axis === 'y' || rotY === 0 || rotY === 180) return axis
+  return axis === 'x' ? 'z' : 'x'
+}
+
+/**
+ * The slab of edge banding on one edge of a panel, as a box in the same space.
+ *
+ * A panel's banded edge is its NARROW face — length × thickness — so the banding
+ * covers that whole face rather than being a thin line along it. That is what makes
+ * it visible at a glance: the edge reads as a different colour, and you can see at
+ * once whether the front edge of a shelf is the one that got it.
+ *
+ * `side` 0 is the edge at the lower coordinate, 1 the higher, matching EdgeBanding.
+ *
+ * The slab sits just OUTSIDE the panel, overlapping it by a hair. Banding really is
+ * applied to the outside of the cut piece, and drawing it flush instead leaves the
+ * two surfaces coplanar — which renders as z-fighting, so the banding appears on
+ * some panels and silently vanishes on others.
+ */
+export function bandingBox(
+  box: Box,
+  thicknessAxis: Axis,
+  lengthAxis: Axis,
+  along: 'length' | 'width',
+  side: 0 | 1,
+  bandThickness: number,
+): Box {
+  const index: Record<Axis, 0 | 1 | 2> = { x: 0, y: 1, z: 2 }
+  const other = (['x', 'y', 'z'] as Axis[]).find(
+    (a) => a !== thicknessAxis && a !== lengthAxis,
+  )!
+
+  // An edge that runs ALONG the length sits at an end of the other axis, and vice
+  // versa — the same relationship the banding flags use.
+  const axis = along === 'length' ? other : lengthAxis
+  const i = index[axis]
+
+  const pos: [number, number, number] = [...box.pos]
+  const size: [number, number, number] = [...box.size]
+
+  const overlap = 0.2
+  const t = Math.max(bandThickness, overlap * 2)
+  size[i] = t
+  pos[i] =
+    side === 1
+      ? box.pos[i] + box.size[i] - overlap
+      : box.pos[i] - t + overlap
+
+  return { pos, size }
 }

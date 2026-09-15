@@ -30,7 +30,8 @@ npm run preview  # serve the build
 **Designer** — build the piece. Pick a cabinet, click a space in the 2D elevation, and
 either divide it (columns or rows) or fill it with shelves, drawers or a door. Sizes are
 exact millimetres in the inspector; the 3D view orbits, explodes, and selects any part
-you click. Any face can take its own material — a solid timber top on an MDF carcass —
+you click. **Banding** shades every banded edge in teal, so which edges get tapacanto is
+something you can see while designing rather than read off a table. Any face can take its own material — a solid timber top on an MDF carcass —
 and each panel's real thickness flows through every measurement that depends on it.
 
 **Cut plan** — the sheet layouts. Set your sheet size and saw kerf and it nests every
