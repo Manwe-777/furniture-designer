@@ -574,7 +574,8 @@ function CabinetFields({ cabinet }: { cabinet: Cabinet }) {
             label="Banding thickness"
             value={cabinet.banding.thickness}
             min={0}
-            step={0.1}
+            step={0.05}
+            hint="Which PVC tape the shop glues on — a product you pick, not a calculated value. Common stock is 0.45mm (standard), 1mm, and 2mm for fronts that take knocks. With compensation off it changes no cut size, only what you order."
             onChange={(v) => set({ banding: { ...cabinet.banding, thickness: v } })}
           />
           <CheckField

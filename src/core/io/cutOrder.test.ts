@@ -106,13 +106,16 @@ describe('order checks', () => {
     expect(w.some((x) => x.message.includes(String(BAND_MIN)))).toBe(true)
   })
 
-  it('flags more than one banding format', () => {
+  it('notes two banding formats without calling it illegal', () => {
     const d = newDesign()
     d.cabinets = [
       newCabinet({ banding: { enabled: true, thickness: 1, compensate: false } }),
       newCabinet({ banding: { enabled: true, thickness: 2, compensate: false } }),
     ]
-    expect(cutOrderWarnings(d, bomOf(d)).some((x) => /one banding format/.test(x.message))).toBe(true)
+    const w = cutOrderWarnings(d, bomOf(d))
+    // The shop's limit is per piece, and each piece has one format by construction.
+    expect(w.some((x) => /order both/.test(x.message))).toBe(true)
+    expect(w.every((x) => x.severity !== 'error' || !/banding format/.test(x.message))).toBe(true)
   })
 })
 

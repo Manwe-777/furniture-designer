@@ -52,9 +52,12 @@ export function cutOrderWarnings(design: Design, bom: BomSummary): OrderWarning[
     ].filter(Boolean),
   )
   if (thicknesses.size > 1) {
+    // Their rule is one format per PIECE, not per order, and banding is set per
+    // cabinet here — so every piece already has exactly one. Different tape on the
+    // desk than on the shelving is perfectly legal; you just have to buy both.
     out.push({
       severity: 'warning',
-      message: `Only one banding format per piece is allowed, and this design uses ${[...thicknesses].join('mm, ')}mm.`,
+      message: `Two banding formats in this order (${[...thicknesses].join('mm and ')}mm) — legal, since the one-format rule is per piece, but order both.`,
     })
   }
 
