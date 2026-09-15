@@ -40,7 +40,9 @@ lower. Prints, or exports CSV.
 
 **Bill of materials** — every part with its cut size and quantity, plus hardware counts
 and a cost estimate. Exports a **cutting order as .xlsx** in the column layout board
-shops ask for, one worksheet per material, with the shop's own rules checked first:
+shops ask for — or the same thing as **CSV**, for pasting straight into their own
+template from a spreadsheet — one worksheet per material, with the shop's rules checked
+first:
 minimum cuttable piece, minimum bandable piece, one banding format per piece, and
 whether cut-size compensation should be off because the shop applies banding to the size
 you give. Edit your materials and sheet prices here. Mark a material

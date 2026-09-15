@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { buildCost, buildHardware } from '../../core/hardware'
 import { bomToCsv } from '../../core/io/csv'
-import { buildCutOrder, cutOrderWarnings } from '../../core/io/cutOrder'
+import { buildCutOrder, cutOrderToCsv, cutOrderWarnings } from '../../core/io/cutOrder'
 import { countMaterialUsage } from '../../core/materials'
 import type { Material } from '../../core/types'
 import { useStore } from '../../state/store'
@@ -36,16 +36,26 @@ export function BomPage() {
             </span>
             <button
               type="button"
+              title="Plain parts list"
               onClick={() => download('bill-of-materials.csv', bomToCsv(bom.rows), 'text/csv')}
             >
-              Export CSV
+              Parts CSV
             </button>
             <button
               type="button"
-              title="Cutting order in the board shop's column layout, one sheet per material"
+              title="Cutting order in the board shop's column layout, one worksheet per material"
               onClick={() => downloadBlob('listado-de-corte.xlsx', buildCutOrder(design, bom))}
             >
-              Cutting order (.xlsx)
+              Corte .xlsx
+            </button>
+            <button
+              type="button"
+              title="The same cutting order as CSV — same columns, ready to paste into the shop's template"
+              onClick={() =>
+                download('listado-de-corte.csv', cutOrderToCsv(design, bom), 'text/csv')
+              }
+            >
+              Corte .csv
             </button>
           </div>
         </div>

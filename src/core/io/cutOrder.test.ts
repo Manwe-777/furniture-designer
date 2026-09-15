@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { buildCutOrder, cutOrderWarnings, BAND_MIN, CUT_MIN } from './cutOrder'
+import {
+  buildCutOrder,
+  cutOrderBlocks,
+  cutOrderToCsv,
+  cutOrderWarnings,
+  BAND_MIN,
+  CUT_MIN,
+} from './cutOrder'
 import { buildXlsx, columnName } from './xlsx'
 import { buildBom } from '../bom'
 import { buildDesign, materialsById } from '../build/buildDesign'
@@ -106,5 +113,46 @@ describe('order checks', () => {
       newCabinet({ banding: { enabled: true, thickness: 2, compensate: false } }),
     ]
     expect(cutOrderWarnings(d, bomOf(d)).some((x) => /one banding format/.test(x.message))).toBe(true)
+  })
+})
+
+describe('csv mirrors the xlsx', () => {
+  it('uses the shop columns, in their order', () => {
+    const d = design()
+    const csv = cutOrderToCsv(d, bomOf(d))
+    const header = csv.split('\n').find((l) => l.startsWith('Cant,'))!
+    expect(header).toBe(
+      'Cant,1° med (sentido veta),2° med,ESPESOR CANTO,1° MED A,1° MED B,2° MED A,2° MED B,Observaciones',
+    )
+  })
+
+  it('carries exactly the rows the worksheets carry', () => {
+    const d = design()
+    const bom = bomOf(d)
+    const blocks = cutOrderBlocks(d, bom)
+    const csvLines = cutOrderToCsv(d, bom).split('\n')
+    const blockLines = blocks.reduce((sum, b) => sum + b.rows.length, 0)
+    // Every block row, plus one blank line between blocks.
+    expect(csvLines.length).toBe(blockLines + (blocks.length - 1))
+  })
+
+  it('puts the grain direction first, as their guide requires', () => {
+    // Their sheet: the same rectangle is written 400x680 or 680x400 depending on
+    // which way the grain runs, so column 2 is the grain direction, not the longer
+    // side. A grained material must therefore never be reoriented.
+    const d = design()
+    d.materials = d.materials.map((m) =>
+      m.id === 'mdf18' ? { ...m, hasGrain: true } : m,
+    )
+    const bom = bomOf(d)
+    const shelf = bom.rows.find((r) => r.label === 'Shelf')!
+    const parts = buildDesign(d).parts.filter((p) => p.role === 'shelf')
+    expect(shelf.length).toBe(parts[0].length)
+    expect(shelf.width).toBe(parts[0].width)
+  })
+
+  it('escapes a label containing a comma', () => {
+    const d = design({}, { name: 'Mesa, grande' })
+    expect(cutOrderToCsv(d, bomOf(d))).toContain('"Mesa, grande"')
   })
 })

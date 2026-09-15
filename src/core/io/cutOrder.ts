@@ -77,6 +77,19 @@ export function cutOrderWarnings(design: Design, bom: BomSummary): OrderWarning[
   return out
 }
 
+/**
+ * One block of the order — a material and its rows, in the shop's column layout.
+ *
+ * Built once and rendered either as a worksheet or as CSV, so the two exports cannot
+ * drift apart. The CSV exists so the rows can be pasted straight into the shop's own
+ * template from a spreadsheet.
+ */
+export interface OrderBlock {
+  title: string
+  rows: CellValue[][]
+  columnWidths?: number[]
+}
+
 function materialSheet(
   design: Design,
   bom: BomSummary,
@@ -136,18 +149,21 @@ function materialSheet(
   }
 }
 
-/** One worksheet per material actually cut from sheets. */
-export function buildCutOrder(design: Design, bom: BomSummary): Blob {
-  const sheets = design.materials
+/** One block per material actually cut from sheets, plus the supplied parts. */
+export function cutOrderBlocks(design: Design, bom: BomSummary): OrderBlock[] {
+  const blocks: OrderBlock[] = design.materials
     .filter((m) => !m.supplied && bom.rows.some((r) => r.materialId === m.id))
-    .map((m) => materialSheet(design, bom, m))
+    .map((m) => {
+      const sheet = materialSheet(design, bom, m)
+      return { title: sheet.name, rows: sheet.rows, columnWidths: sheet.columnWidths }
+    })
 
   const supplied = bom.rows.filter((r) => r.supplied)
   if (supplied.length > 0) {
-    // Listed, but on their own tab and clearly not part of the order — these are
-    // bought to size elsewhere and must not reach the saw.
-    sheets.push({
-      name: 'NO CORTAR (provisto)',
+    // Listed, but clearly apart from the order — these are bought to size elsewhere
+    // and must not reach the saw.
+    blocks.push({
+      title: 'NO CORTAR (provisto)',
       rows: [
         ['PIEZAS PROVISTAS — NO INCLUIR EN EL CORTE'],
         [],
@@ -158,5 +174,33 @@ export function buildCutOrder(design: Design, bom: BomSummary): Blob {
     })
   }
 
-  return buildXlsx(sheets)
+  return blocks
+}
+
+/** One worksheet per block. */
+export function buildCutOrder(design: Design, bom: BomSummary): Blob {
+  return buildXlsx(
+    cutOrderBlocks(design, bom).map((b) => ({
+      name: b.title,
+      rows: b.rows,
+      columnWidths: b.columnWidths,
+    })),
+  )
+}
+
+/**
+ * The same order as CSV — identical columns, so it can be opened in a spreadsheet
+ * and pasted into the shop's template without rearranging anything. Blocks are
+ * separated by a blank line, since a CSV has no tabs.
+ */
+export function cutOrderToCsv(design: Design, bom: BomSummary): string {
+  const escape = (v: CellValue): string => {
+    if (v === null || v === undefined) return ''
+    const s = String(v)
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+  }
+
+  return cutOrderBlocks(design, bom)
+    .map((block) => block.rows.map((row) => row.map(escape).join(',')).join('\n'))
+    .join('\n\n')
 }
