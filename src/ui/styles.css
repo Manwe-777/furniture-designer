@@ -1317,3 +1317,139 @@ input[type='range'] {
 .order-warnings {
   margin: 10px 12px 0;
 }
+
+/* ---------- carcass fixings ---------- */
+
+.fixing {
+  fill: #1b6ac4;
+  stroke: #0d1b2b;
+  stroke-width: 1;
+}
+
+.fixing.clash {
+  fill: #e0472f;
+  stroke: #2b0d08;
+}
+
+/* The upright standing on the board, so you can see whether the hole lands on it. */
+.mate-band {
+  fill: #2b3138;
+  opacity: 0.35;
+  stroke: #2b3138;
+  stroke-width: 1.5;
+}
+
+.joint-detail {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.joint-detail p {
+  margin: 4px 0;
+}
+
+.warn-text {
+  color: #e0472f;
+}
+
+.set-out {
+  margin: 6px 0 8px;
+  padding-left: 20px;
+  display: grid;
+  gap: 2px;
+}
+
+.set-out li {
+  color: var(--text);
+}
+
+.set-out-gap {
+  color: var(--text-muted);
+}
+
+.set-out .mono {
+  display: inline-block;
+  min-width: 56px;
+  font-weight: 600;
+}
+
+.joint-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 6px 0;
+}
+
+.joint-table th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  padding: 3px 8px 3px 0;
+}
+
+.joint-table td {
+  padding: 3px 8px 3px 0;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+/* ---------- the list of jigs to print ---------- */
+
+.print-list {
+  /* The numbers are rendered in the markup rather than left to ::marker: each row
+     is a grid, and a grid list-item drops its marker. They are referenced by the
+     board index, so they have to actually appear. */
+  list-style: none;
+  margin: 10px 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.print-num {
+  display: inline-block;
+  min-width: 17px;
+  margin-right: 6px;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--border-strong);
+  color: var(--text);
+  text-align: center;
+}
+
+.print-list > li {
+  display: grid;
+  gap: 2px;
+}
+
+.print-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.print-head button {
+  flex: none;
+}
+
+.field-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.field-inline select {
+  flex: 1;
+}
+
+.serves summary {
+  cursor: pointer;
+}
+
+.serves ul {
+  margin: 3px 0 0;
+  padding-left: 16px;
+}

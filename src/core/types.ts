@@ -111,6 +111,12 @@ export interface Part {
   lengthAxis: Axis
   /** World-placed bounding box, after the owner's transform is applied. */
   box: Box
+  /**
+   * Set on shelves only: true when the shelf is housed into the sides rather than
+   * resting on pins. A fixed shelf is part of the carcass and needs joint fixings;
+   * an adjustable one is simply dropped in and needs none.
+   */
+  fixed?: boolean
 }
 
 /** A child's share of a split: either an exact size, or a weighted share of the rest. */
@@ -278,6 +284,46 @@ export const DEFAULT_HOLE_GRID: HoleGrid = {
   backSetback: 37,
 }
 
+/**
+ * The screw that holds the carcass together, and where it goes.
+ *
+ * A carcass joint is end-grain to face: one panel's edge butts the broad face of
+ * another, and the fixing passes THROUGH the face panel into that edge. So it is
+ * two holes of different sizes on one axis — a clearance hole the shank drops
+ * through, and a pilot drilled on into the edge — which is why a confirmat is
+ * normally driven with a single stepped bit.
+ *
+ * Only the clearance hole has to be positioned. The pilot is drilled through it, so
+ * it cannot be out of line with it, which is the whole reason this joint is worth
+ * preferring over dowels in sheet goods.
+ */
+export interface JointFixing {
+  /** What the schedule is written for, so the numbers can be checked against a box. */
+  name: string
+  /** Screw length, which decides how far it reaches into the edge. */
+  length: number
+  /** Through-hole in the panel being drilled. */
+  clearance: number
+  /** Pilot into the mating panel's edge. */
+  pilot: number
+  /** Counterbore so the head finishes flush. Diameter 0 means drive it proud. */
+  head: { diameter: number; depth: number }
+  /** Hole centres this far in from the panel's front and back edges. */
+  setback: number
+  /** One fixing per this many mm of joint, never fewer than two. */
+  spacing: number
+}
+
+export const DEFAULT_JOINT_FIXING: JointFixing = {
+  name: '7 x 50 confirmat',
+  length: 50,
+  clearance: 7,
+  pilot: 5,
+  head: { diameter: 10, depth: 2 },
+  setback: 50,
+  spacing: 200,
+}
+
 export interface Cabinet {
   id: string
   name: string
@@ -344,6 +390,8 @@ export interface DesignSettings {
   /** Unusable margin trimmed off each sheet edge. */
   sheetTrim: number
   hardware: HardwarePrices
+  /** The carcass fixing the drilling schedule and its jig are worked out for. */
+  joints: JointFixing
 }
 
 export interface Design {

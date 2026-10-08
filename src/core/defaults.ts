@@ -9,7 +9,7 @@ import type {
   Material,
   Worktop,
 } from './types'
-import { DEFAULT_HOLE_GRID, SCHEMA_VERSION, flex } from './types'
+import { DEFAULT_HOLE_GRID, DEFAULT_JOINT_FIXING, SCHEMA_VERSION, flex } from './types'
 
 export const MAT_MDF18 = 'mdf18'
 export const MAT_MDF15 = 'mdf15'
@@ -69,6 +69,7 @@ export function defaultSettings(): DesignSettings {
       handle: 4,
       edgeBandingPerMetre: 1.2,
     },
+    joints: { ...DEFAULT_JOINT_FIXING, head: { ...DEFAULT_JOINT_FIXING.head } },
   }
 }
 

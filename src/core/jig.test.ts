@@ -1,15 +1,26 @@
 import { describe, expect, it } from 'vitest'
 import {
+  MIN_EDGE_WALL,
+  PRUSA_MK4,
+  confirmatJigFreecadMacro,
+  confirmatJigScad,
+  confirmatJigSpecs,
   edgeJigFreecadMacro,
   edgeJigScad,
   edgeJigSpec,
+  edgeJigSpecs,
+  endJigFreecadMacro,
+  endJigScad,
+  endJigSpecs,
   jigFreecadMacro,
   jigScad,
   jigSpecs,
+  shelfPinEdgeJigSpecs,
 } from './jig'
-import { buildDrilling } from './holes'
+import { buildDrilling, buildShelfEdges, groupShelfEdges } from './holes'
+import { buildJoints } from './joints'
 import { cellWith, newCabinet, newDesign, shelvesContent } from './defaults'
-import { DEFAULT_HOLE_GRID, type Cabinet, type Design } from './types'
+import { DEFAULT_HOLE_GRID, flex, type Cabinet, type Design } from './types'
 
 const design = (cabs: Cabinet[]): Design => ({ ...newDesign(), cabinets: cabs })
 
@@ -225,5 +236,304 @@ describe('edge jig', () => {
       expect(edgeJigScad(spec, 'T')).toMatch(new RegExp(`bit_d\\s+=\\s+${d};`))
       expect(edgeJigFreecadMacro(spec, 'T')).toMatch(new RegExp(`bit_d\\s+=\\s+${d}\\.0`))
     }
+  })
+})
+
+describe('carcass fixing jig', () => {
+  const run = () =>
+    newCabinet({
+      name: 'Run',
+      width: 2090,
+      height: 680,
+      depth: 300,
+      carcass: 'topbottom-full',
+      back: { style: 'none', thickness: 0, rebateDepth: 0 },
+      banding: { enabled: false, thickness: 0, compensate: false },
+      root: {
+        id: 'split',
+        kind: 'split',
+        dir: 'v',
+        dividerThickness: 15,
+        sizes: [flex(1), flex(1), flex(1)],
+        children: [
+          cellWith(shelvesContent(1)),
+          cellWith(shelvesContent(1)),
+          cellWith(shelvesContent(1)),
+        ],
+      },
+      holeGrid: { ...DEFAULT_HOLE_GRID },
+    })
+
+  const specs = (cab = run()) => {
+    const d = design([cab])
+    return confirmatJigSpecs(buildJoints(d, buildDrilling(d)), d.settings.joints)
+  }
+
+  it('collapses a symmetric row to one guide measured from the nearest edge', () => {
+    const [spec] = specs()
+    // Fixings at 50 and 250 across a 300mm board: one 50mm guide, used from each edge.
+    expect(spec.covers).toEqual([50, 250])
+    expect(spec.holes).toEqual([50])
+    expect(spec.turnable).toBe(true)
+    expect(spec.boardWidths).toEqual([300])
+  })
+
+  it('prints something that actually fits the bed', () => {
+    const [spec] = specs()
+    // Reaching 250mm from one edge would need a 271mm part. Turning it end for end
+    // instead makes it 72mm.
+    expect(spec.size.length).toBeLessThan(PRUSA_MK4.length)
+    expect(spec.size.length).toBe(72)
+  })
+
+  it('will not turn the jig onto a rebated back edge', () => {
+    const [spec] = specs(
+      newCabinet({
+        ...run(),
+        back: { style: 'rebate', thickness: 6, rebateDepth: 9, materialId: 'mdf6' },
+      }),
+    )
+    // The fence would sit in the groove, so the rear fixing has to be reached from
+    // the front — 272mm of part, which does not print. It becomes a by-eye hole.
+    expect(spec.turnable).toBe(false)
+    expect(spec.holes).toEqual([50])
+    expect(spec.omitted).toEqual([250])
+  })
+
+  it('is only for uprights that land mid-board', () => {
+    // A plain box: both sides stand flush with the ends of the top and bottom, so
+    // every joint belongs to the end-stop jig and this one has nothing to do.
+    const plain = specs(
+      newCabinet({ ...run(), width: 800, root: cellWith(shelvesContent(1)) }),
+    )
+    expect(plain).toHaveLength(0)
+    // Add dividers and the mid-board jig appears, for those alone.
+    expect(specs()[0].panels.length).toBeGreaterThan(0)
+  })
+
+  it('drops a middle fixing it cannot reach rather than printing an unmakeable part', () => {
+    // A 600mm-deep run: three fixings across, the middle one 300mm in from either
+    // edge. Guiding that would need a 330mm part on a 250mm bed.
+    const [spec] = specs(newCabinet({ ...run(), depth: 600 }))
+    expect(spec.covers).toHaveLength(3)
+    expect(spec.omitted).toEqual([300])
+    expect(spec.size.length).toBeLessThanOrEqual(PRUSA_MK4.length)
+    const header = confirmatJigScad(spec, 'Test')
+    expect(header).toMatch(/BY EYE: 300mm/)
+    expect(header).toMatch(/centimetres of slack/)
+  })
+
+  it('shares one jig between boards of the same width', () => {
+    const d = design([run(), newCabinet({ ...run(), name: 'Other', width: 950 })])
+    const list = confirmatJigSpecs(buildJoints(d, buildDrilling(d)), d.settings.joints)
+    // Four boards, two cabinets, one width — one jig.
+    expect(list).toHaveLength(1)
+    expect(list[0].panels).toHaveLength(4)
+  })
+
+  it('merges boards of different depths that print as the same part', () => {
+    // A 300mm run and a 600mm one both want their fixings 50mm in from the edge,
+    // so both come off one 72mm print — not two identical ones.
+    const d = design([run(), newCabinet({ ...run(), name: 'Deep', depth: 600 })])
+    const list = confirmatJigSpecs(buildJoints(d, buildDrilling(d)), d.settings.joints)
+    expect(list).toHaveLength(1)
+    expect(list[0].boardWidths).toEqual([300, 600])
+    expect(list[0].holes).toEqual([50])
+    // The depth note has to clear the thickest board the one part is used on.
+    expect(list[0].boardThickness).toBe(18)
+  })
+
+  it('adds the plate, the board and the pilot into one bit depth', () => {
+    const [spec] = specs()
+    const scad = confirmatJigScad(spec, 'Test')
+    expect(scad).toMatch(/holes\s+=\s+\[50\];/)
+    expect(scad).toMatch(/clearance = 7;/)
+    // 12mm plate + 18mm board + 37mm pilot.
+    expect(scad).toMatch(/67mm of bit/)
+  })
+
+  it('builds the plate, the fence, the sight slot and the collars', () => {
+    const scad = confirmatJigScad(specs()[0], 'Test')
+    expect(scad).toMatch(/cube\(\[plate_l, plate_w, plate_t\]\)/)
+    expect(scad).toMatch(/slot_w/)
+    expect(scad).toMatch(/clearance \+ collar \* 2/)
+    // The slot must stop short of the far end or the jig comes off the bed in halves.
+    expect(scad).toMatch(/plate_l - bridge \+ 1/)
+  })
+
+  it('says it will not find the position along the board', () => {
+    const header = confirmatJigFreecadMacro(specs()[0], 'Test')
+    expect(header).toMatch(/does NOT find the position along the board/)
+    expect(header).toMatch(/SET OUT FROM THE PARTS, NOT FROM A TAPE MEASURE/)
+  })
+})
+
+describe('end-joint carcass jig', () => {
+  const box = (overrides = {}) =>
+    newCabinet({
+      name: 'Box',
+      width: 800,
+      height: 680,
+      depth: 300,
+      carcass: 'topbottom-full',
+      back: { style: 'none', thickness: 0, rebateDepth: 0 },
+      banding: { enabled: false, thickness: 0, compensate: false },
+      root: cellWith(shelvesContent(1)),
+      holeGrid: { ...DEFAULT_HOLE_GRID },
+      ...overrides,
+    })
+
+  const specs = (cab = box()) => {
+    const d = design([cab])
+    return endJigSpecs(buildJoints(d, buildDrilling(d)), d.settings.joints)
+  }
+
+  it('puts the guide half the upright thickness in from the end', () => {
+    const [spec] = specs()
+    // An 18mm side standing flush with the board's end: its centre is at 9mm.
+    expect(spec.fromEnd).toBe(9)
+    expect(spec.mateThickness).toBe(18)
+  })
+
+  it('does all four corners off one print', () => {
+    const [spec] = specs()
+    expect(spec.holes).toEqual([50])
+    expect(spec.covers).toEqual([50, 250])
+    expect(spec.omitted).toEqual([])
+    expect(spec.size.length).toBeLessThan(PRUSA_MK4.length)
+    expect(spec.size.width).toBeLessThan(PRUSA_MK4.width)
+  })
+
+  it('covers the side panels when the sides run through instead', () => {
+    // sides-full: the top's ends butt the sides' faces, flush with their top ends.
+    const [spec] = specs(box({ carcass: 'sides-full', root: cellWith(shelvesContent(0)) }))
+    expect(spec.fromEnd).toBe(9)
+    expect(spec.panels.every((p) => p.includes('Side'))).toBe(true)
+  })
+
+  it('leaves mid-board uprights to the other jig', () => {
+    const run = box({
+      width: 2090,
+      root: {
+        id: 'split',
+        kind: 'split',
+        dir: 'v',
+        dividerThickness: 15,
+        sizes: [flex(1), flex(1)],
+        children: [cellWith(shelvesContent(1)), cellWith(shelvesContent(1))],
+      },
+    })
+    // Two 18mm sides at the ends, one 15mm divider in the middle. Only the 18mm
+    // ones produce an end jig, and it never claims a 7.5mm offset.
+    const list = specs(run)
+    expect(list.map((s) => s.fromEnd)).toEqual([9])
+  })
+
+  it('builds a plate, a fence and an end stop proud on both faces', () => {
+    const scad = endJigScad(specs()[0], 'Test')
+    expect(scad).toMatch(/from_end  = 9;/)
+    expect(scad).toMatch(/wall_z  = plate_t \+ wall_h \* 2;/)
+    expect(scad).toMatch(/translate\(\[-stop_t, -fence_t, -wall_h\]\)/)
+    expect(scad).toMatch(/translate\(\[from_end, holes\[i\], -1\]\)/)
+  })
+
+  it('says it is the accurate one and explains the four flips', () => {
+    const header = endJigFreecadMacro(specs()[0], 'Test')
+    expect(header).toMatch(/THIS IS THE ACCURATE ONE/)
+    expect(header).toMatch(/ALL FOUR CORNERS/)
+    expect(header).toMatch(/No pencil line, no tape/)
+  })
+})
+
+describe('shelf-pin edge jig', () => {
+  const unit = (overrides = {}) =>
+    newCabinet({
+      name: 'Unit',
+      width: 800,
+      height: 680,
+      depth: 300,
+      carcass: 'topbottom-full',
+      back: { style: 'none', thickness: 0, rebateDepth: 0 },
+      banding: { enabled: false, thickness: 0, compensate: false },
+      root: cellWith(shelvesContent(2)),
+      holeGrid: { ...DEFAULT_HOLE_GRID },
+      ...overrides,
+    })
+
+  const edges = (cab = unit()) => groupShelfEdges(buildShelfEdges(design([cab])))
+
+  it('takes its rows off the side panels, not off the grid', () => {
+    const [group] = edges()
+    // Pins at 37 from the front and 37 from the back of a 300mm side; the shelf is
+    // the same depth and flush, so 37 and 263 from its own front edge.
+    expect(group.edge.rows).toEqual([37, 263])
+    expect(group.edge.fromNearestEdge).toEqual([37])
+    expect(group.edge.centre).toBe(9)
+  })
+
+  it('follows a shelf that is set back from the carcass front', () => {
+    const [group] = edges(
+      unit({ root: cellWith({ type: 'shelves', count: 2, setback: 20, fixed: false }) }),
+    )
+    // The shelf front is 20mm behind the side panel's, so the rows move with it.
+    expect(group.edge.rows).toEqual([17, 243])
+  })
+
+  it('groups identical shelves into one setup', () => {
+    const [group] = edges(unit({ root: cellWith(shelvesContent(5)) }))
+    expect(group.count).toBe(5)
+    expect(edges(unit({ root: cellWith(shelvesContent(5)) }))).toHaveLength(1)
+  })
+
+  it('makes a jig cut for the shelf, with the grid diameter', () => {
+    const [jig] = shelfPinEdgeJigSpecs(edges())
+    expect(jig.kind).toBe('shelf-pin')
+    expect(jig.panelThickness).toBe(18)
+    expect(jig.holeDiameter).toBe(5)
+    expect(jig.holes).toEqual([37])
+    expect(jig.wall).toBe(6.5)
+    const scad = edgeJigScad(jig, 'Test')
+    expect(scad).toMatch(/holes     = \[37\];/)
+    expect(scad).toMatch(/bit_d     = 5;/)
+    expect(scad).toMatch(/SHELF PINS/)
+  })
+
+  it('warns that a centred hole drops the shelf by half its thickness', () => {
+    const scad = edgeJigScad(shelfPinEdgeJigSpecs(edges())[0], 'Test')
+    expect(scad).toMatch(/9mm lower than the drawing/)
+  })
+
+  it('flags a shelf too thin to take the pin', () => {
+    const [group] = edges(
+      unit({
+        root: cellWith({ type: 'shelves', count: 1, setback: 0, fixed: false, thickness: 8 }),
+      }),
+    )
+    expect(group.edge.warnings.join(' ')).toMatch(/break out/)
+  })
+})
+
+describe('edge jig', () => {
+  it('makes one per thickness, not one for the whole design', () => {
+    const list = edgeJigSpecs([18, 15, 18, 6], 8)
+    expect(list.map((s) => s.panelThickness)).toEqual([6, 15, 18])
+  })
+
+  it('reports the material left either side of the hole', () => {
+    const [fifteen] = edgeJigSpecs([15], 8)
+    expect(fifteen.wall).toBe(3.5)
+    expect(edgeJigSpecs([18], 8)[0].wall).toBe(5)
+  })
+
+  it('refuses to pretend an 8mm hole fits a 6mm edge', () => {
+    const [thin] = edgeJigSpecs([6], 8)
+    expect(thin.wall).toBeLessThan(MIN_EDGE_WALL)
+    expect(edgeJigScad(thin, 'Test')).toMatch(/THIS COMBINATION DOES NOT WORK/)
+  })
+
+  it('states the one thickness it is cut for, in both outputs', () => {
+    const [spec] = edgeJigSpecs([15], 8)
+    expect(edgeJigScad(spec, 'Test')).toMatch(/CUT FOR 15mm AND ONLY 15mm/)
+    expect(edgeJigFreecadMacro(spec, 'Test')).toMatch(/CUT FOR 15mm AND ONLY 15mm/)
   })
 })

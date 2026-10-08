@@ -76,6 +76,8 @@ export interface PanelSpec {
   lengthAxis: Axis
   banding?: EdgeBanding
   nodeId?: string
+  /** Shelves only: housed into the sides rather than resting on pins. */
+  fixed?: boolean
 }
 
 /**
@@ -160,6 +162,7 @@ export class PartCollector {
       thicknessAxis: spec.thicknessAxis,
       lengthAxis: spec.lengthAxis,
       box: spec.box,
+      fixed: spec.fixed,
     }
     this.parts.push(part)
     return part
@@ -563,6 +566,7 @@ function addShelves(
     c.add({
       role: 'shelf',
       label: content.fixed ? 'Fixed shelf' : 'Shelf',
+      fixed: content.fixed,
       materialId: matId,
       thickness: ts,
       box: box(region.x0, region.x1, y0, y0 + ts, region.z0, z1),
